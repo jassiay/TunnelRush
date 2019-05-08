@@ -1,15 +1,9 @@
 var buffersTunnel;
 const ellipseRatio = 1, bigR = 50;
 
-//
-// initBuffers
-//
-// Initialize the buffers we'll need. For this demo, we just
-// have one object -- a simple three-dimensional cube.
-//
 var textureTunnel;
 function initBuffersTunnel(gl, level) {
-	// Create a buffer for the cube's vertex positions.
+	// Create a buffer for the tunnel's vertex positions.
 	var texturePath;
 	if (level==1)
 		texturePath = './assets/Tunnel1.jpg'
@@ -24,13 +18,9 @@ function initBuffersTunnel(gl, level) {
 	textureTunnel = loadTexture(gl, texturePath);
 	console.log("Tunnel Texture Loaded")
 
-	// Select the positionBuffer as the one to apply buffer
-	// operations to from here out.
-
 	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-	// Now create an array of positions for the cube.
-
+	// create an array of positions for the tunnel.
 	const positions = new Array(12*8*20);
 	const texCods = new Array(8*8*20);
 	const ang = (90*(Math.PI/180))/20;
@@ -71,14 +61,9 @@ function initBuffersTunnel(gl, level) {
 		console.log("init tunnel")
 	}
 
-	// Now pass the list of positions into WebGL to build the
-	// shape. We do this by creating a Float32Array from the
-	// JavaScript array, then use it to fill the current buffer.
-
+	// pass the list of positions into WebGL
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
-	// Now set up the colors for the faces. We'll use solid colors
-	// for each face.
 
 	const textureCoordBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
@@ -100,7 +85,6 @@ function initBuffersTunnel(gl, level) {
 		indices.push(i+0, i+1, i+2, i+0, i+2, i+3);
 	}
 
-	// Now send the element array to GL
 
 	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
 			new Uint16Array(indices), gl.STATIC_DRAW);
@@ -118,30 +102,15 @@ function drawTunnel(gl, programInfo, tunnelInfo) {
 	// the center of the scene.
 	const modelViewMatrix = mat4.create();
 
-	// Now move the drawing position a bit to where we want to
-	// start drawing the square.
 
-	mat4.translate(modelViewMatrix,     // destination matrix
-								 modelViewMatrix,     // matrix to translate
-								 tunnelInfo.position);  // amount to translate
+	mat4.translate(modelViewMatrix,modelViewMatrix,tunnelInfo.position);
 
-	mat4.rotate(modelViewMatrix,  // destination matrix
-							modelViewMatrix,  // matrix to rotate
-							tunnelInfo.rotation,     // amount to rotate in radians
-							tunnelInfo.dirVector);       // axis to rotate around (Z)
+	mat4.rotate(modelViewMatrix, modelViewMatrix, tunnelInfo.rotation,tunnelInfo.dirVector);
 
-	mat4.rotate(modelViewMatrix,  // destination matrix
-							modelViewMatrix,  // matrix to rotate
-							tunnelInfo.rotAngle1,     // amount to rotate in radians
-							tunnelInfo.rotVector1);       // axis to rotate around (Z)
+	mat4.rotate(modelViewMatrix, modelViewMatrix,tunnelInfo.rotAngle1,tunnelInfo.rotVector1);
 
-	mat4.rotate(modelViewMatrix,  // destination matrix
-							modelViewMatrix,  // matrix to rotate
-							tunnelInfo.rotAngle2,     // amount to rotate in radians
-							tunnelInfo.rotVector2);       // axis to rotate around (Z)
+	mat4.rotate(modelViewMatrix,modelViewMatrix,tunnelInfo.rotAngle2,tunnelInfo.rotVector2);
 
-	// Tell WebGL how to pull out the positions from the position
-	// buffer into the vertexPosition attribute
 	{
 		const numComponents = 3;
 		const type = gl.FLOAT;
@@ -191,10 +160,7 @@ function drawTunnel(gl, programInfo, tunnelInfo) {
 			false,
 			modelViewMatrix);
 
-	// Tell WebGL we want to affect textureTunnel unit 0
 	gl.activeTexture(gl.TEXTURE0);
-
-	// Bind the textureTunnel to textureTunnel unit 0
 	gl.bindTexture(gl.TEXTURE_2D, textureTunnel);
 
 	// Tell the shader we bound the textureTunnel to textureTunnel unit 0
@@ -222,15 +188,15 @@ function makeTunnel(_position, _dirVector) {
 	this.rotVector2 = vec3.fromValues(-1, 0, 0);
 	this.rotAngle2 = Math.acos(_dirVector[1]/vec3.length(_dirVector)) - Math.PI/2;
 
-	const tempRot = mat4.create();
-	mat4.identity(tempRot);
-	mat4.rotate(tempRot, tempRot, this.rotation, this.dirVector);
-	mat4.rotate(tempRot, tempRot, this.rotAngle1, this.rotVector1);
-	mat4.rotate(tempRot, tempRot, this.rotAngle2, this.rotVector2);
+	const tempRotation = mat4.create();
+	mat4.identity(tempRotation);
+	mat4.rotate(tempRotation, tempRotation, this.rotation, this.dirVector);
+	mat4.rotate(tempRotation, tempRotation, this.rotAngle1, this.rotVector1);
+	mat4.rotate(tempRotation, tempRotation, this.rotAngle2, this.rotVector2);
 
 	this.perDirVector = vec3.fromValues(0, 1, 0);
 	// console.log(this.perDirVector)
-	vec3.transformMat4(this.perDirVector, this.perDirVector, tempRot);
+	vec3.transformMat4(this.perDirVector, this.perDirVector, tempRotation);
 	this.normVector = vec3.create();
 	vec3.cross(this.normVector, this.dirVector, this.perDirVector);
 }
@@ -244,10 +210,10 @@ function getPosition(tunnelInfo, ang) {
 
 function getForwardDirection(tunnelInfo, ang) {
 	var ans = vec3.create();
-	const tempRot = mat4.create();
-	mat4.identity(tempRot);
-	mat4.rotate(tempRot, tempRot, ang*Math.PI/180, tunnelInfo.normVector);
-	vec3.transformMat4(ans, tunnelInfo.dirVector, tempRot);
+	const tempRotation = mat4.create();
+	mat4.identity(tempRotation);
+	mat4.rotate(tempRotation, tempRotation, ang*Math.PI/180, tunnelInfo.normVector);
+	vec3.transformMat4(ans, tunnelInfo.dirVector, tempRotation);
 	// console.log("get Forward" + ans)
 	return ans;
 
@@ -255,11 +221,11 @@ function getForwardDirection(tunnelInfo, ang) {
 
 function getUpDirection(tunnelInfo, ang, ang2) {
 	var ans = vec3.create();
-	const tempRot = mat4.create();
-	mat4.identity(tempRot);
-	mat4.rotate(tempRot, tempRot, ang*Math.PI/180, tunnelInfo.normVector);
-	mat4.rotate(tempRot, tempRot, ang2, tunnelInfo.dirVector);
-	vec3.transformMat4(ans, tunnelInfo.perDirVector, tempRot);
+	const tempRotation = mat4.create();
+	mat4.identity(tempRotation);
+	mat4.rotate(tempRotation, tempRotation, ang*Math.PI/180, tunnelInfo.normVector);
+	mat4.rotate(tempRotation, tempRotation, ang2, tunnelInfo.dirVector);
+	vec3.transformMat4(ans, tunnelInfo.perDirVector, tempRotation);
 	return ans;
 }
 

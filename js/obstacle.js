@@ -1,12 +1,5 @@
 var buffersObstacle;
 
-
-//
-// initBuffers
-//
-// Initialize the buffersObstacle we'll need. For this demo, we just
-// have one object -- a simple three-dimensional cube.
-//
 var textureObstacle;
 function initBuffersObstacle(gl, level) {
 
@@ -24,12 +17,8 @@ function initBuffersObstacle(gl, level) {
 	const positionBuffer = gl.createBuffer();
 	textureObstacle = loadTexture(gl, texturePath);
 
-	// Select the positionBuffer as the one to apply buffer
-	// operations to from here out.
-
 	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-	// Now create an array of positions for the cube.
+	// create an array of positions for the cube.
 
 	const positions = [
 		// Front face
@@ -69,25 +58,10 @@ function initBuffersObstacle(gl, level) {
 		-1.0,  1.0, -1.0,
 	];
 
-	// Now pass the list of positions into WebGL to build the
-	// shape. We do this by creating a Float32Array from the
-	// JavaScript array, then use it to fill the current buffer.
+	// Float32 Array
 
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
-	// Now set up the colors for the faces. We'll use solid colors
-	// for each face.
-
-	// const faceColors = [
-	// 	[1.0,  0.0,  0.0,  1.0],    // Front face: white
-	// 	[1.0,  0.0,  0.0,  1.0],    // Back face: red
-	// 	[1.0,  0.0,  0.0,  1.0],    // Top face: green
-	// 	[1.0,  0.0,  0.0,  1.0],    // Bottom face: blue
-	// 	[1.0,  0.0,  0.0,  1.0],    // Right face: yellow
-	// 	[1.0,  0.0,  0.0,  1.0],    // Left face: purple
-	// ];
-
-	// Convert the array of colors into a table for all the vertices.
 
 	const texCods = [
 		// Front
@@ -126,8 +100,6 @@ function initBuffersObstacle(gl, level) {
 	gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCods), gl.STATIC_DRAW);
 
-	// Build the element array buffer; this specifies the indices
-	// into the vertex arrays for each face's vertices.
 
 	const indexBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -145,7 +117,6 @@ function initBuffersObstacle(gl, level) {
 		20, 21, 22,     20, 22, 23,   // left
 	];
 
-	// Now send the element array to GL
 
 	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
 			new Uint16Array(indices), gl.STATIC_DRAW);
@@ -160,40 +131,20 @@ function initBuffersObstacle(gl, level) {
 }
 
 function drawObstacle(gl, programInfo, cubeInfo) {
-	// Set the drawing position to the "identity" point, which is
-	// the center of the scene.
 	const modelViewMatrix = mat4.create();
 
 	// Now move the drawing position a bit to where we want to
 	// start drawing the square.
 
-	mat4.translate(modelViewMatrix,     // destination matrix
-								 modelViewMatrix,     // matrix to translate
-								 cubeInfo.position);  // amount to translate
+	mat4.translate(modelViewMatrix, modelViewMatrix, cubeInfo.position); 
 
-	mat4.rotate(modelViewMatrix,  // destination matrix
-							modelViewMatrix,  // matrix to rotate
-							cubeInfo.rotation,     // amount to rotate in radians
-							cubeInfo.dirVector);       // axis to rotate around (Z)
-
-	mat4.rotate(modelViewMatrix,  // destination matrix
-							modelViewMatrix,  // matrix to rotate
-							cubeInfo.rotAngle1,     // amount to rotate in radians
-							cubeInfo.rotVector1);       // axis to rotate around (Z)
-
-	mat4.rotate(modelViewMatrix,  // destination matrix
-							modelViewMatrix,  // matrix to rotate
-							cubeInfo.rotAngle2,     // amount to rotate in radians
-							cubeInfo.rotVector2);       // axis to rotate around (Z)
-
+	mat4.rotate(modelViewMatrix,modelViewMatrix,cubeInfo.rotation, cubeInfo.dirVector); 
+	mat4.rotate(modelViewMatrix, modelViewMatrix, cubeInfo.rotAngle1,cubeInfo.rotVector1); 
+	mat4.rotate(modelViewMatrix, modelViewMatrix,cubeInfo.rotAngle2,cubeInfo.rotVector2); 
 	mat4.scale(modelViewMatrix, modelViewMatrix, cubeInfo.scale);
 
-	mat4.translate(modelViewMatrix,     // destination matrix
-								 modelViewMatrix,     // matrix to translate
-								 [0, cubeInfo.displaced, 0]);  // amount to translate
+	mat4.translate(modelViewMatrix,  modelViewMatrix,[0, cubeInfo.displaced, 0]);
 
-	// Tell WebGL how to pull out the positions from the position
-	// buffer into the vertexPosition attribute
 	{
 		const numComponents = 3;
 		const type = gl.FLOAT;
@@ -230,23 +181,18 @@ function drawObstacle(gl, programInfo, cubeInfo) {
 			programInfo.attribLocations.textureCoord);
 	}
 
-	// Tell WebGL which indices to use to index the vertices
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffersObstacle.indices);
 
-	// Tell WebGL to use our program when drawing
 
 	gl.uniformMatrix4fv(
 			programInfo.uniformLocations.modelViewMatrix,
 			false,
 			modelViewMatrix);
 
-	// Tell WebGL we want to affect textureObstacle unit 0
 	gl.activeTexture(gl.TEXTURE0);
 
-	// Bind the textureObstacle to textureObstacle unit 0
 	gl.bindTexture(gl.TEXTURE_2D, textureObstacle);
 
-	// Tell the shader we bound the textureObstacle to textureObstacle unit 0
 	gl.uniform1i(programInfo.uniformLocations.uSampler, 0);
 
 	{
@@ -301,47 +247,28 @@ function makeObstacle(_position, _dirVector, _type) {
 
 
 function isColliding(_camPos, _curCentre, _forwardDir, cubeInfo) {
-	var tempRot = mat4.create();
-	mat4.translate(tempRot,     // destination matrix
-								 tempRot,     // matrix to translate
-								 cubeInfo.position);  // amount to translate
+	var tempRotation = mat4.create();
+	mat4.translate(tempRotation, tempRotation, cubeInfo.position);
 
-	mat4.rotate(tempRot,  // destination matrix
-							tempRot,  // matrix to rotate
-							cubeInfo.rotAngle1,     // amount to rotate in radians
-							cubeInfo.rotVector1);       // axis to rotate around (Z)
+	mat4.rotate(tempRotation,tempRotation,cubeInfo.rotAngle1,cubeInfo.rotVector1); 
+	mat4.rotate(tempRotation, tempRotation,cubeInfo.rotAngle2,cubeInfo.rotVector2);
 
-	mat4.rotate(tempRot,  // destination matrix
-							tempRot,  // matrix to rotate
-							cubeInfo.rotAngle2,     // amount to rotate in radians
-							cubeInfo.rotVector2);       // axis to rotate around (Z)
-
-	mat4.scale(tempRot, tempRot, cubeInfo.scale);
-	mat4.translate(tempRot,     // destination matrix
-								 tempRot,     // matrix to translate
-								 [0, cubeInfo.displaced, 0]);  // amount to translate
+	mat4.scale(tempRotation, tempRotation, cubeInfo.scale);
+	mat4.translate(tempRotation, tempRotation, [0, cubeInfo.displaced, 0]); 
 
 	var bottomLeft = vec3.fromValues(-1, -1, -1);
 	var topRight = vec3.fromValues(1, 1, 1);
-	vec3.transformMat4(bottomLeft, bottomLeft, tempRot);
-	vec3.transformMat4(topRight, topRight, tempRot);
+	vec3.transformMat4(bottomLeft, bottomLeft, tempRotation);
+	vec3.transformMat4(topRight, topRight, tempRotation);
 
-	tempRot = mat4.create();
+	tempRotation = mat4.create();
 	const tempVec = vec3.create();
 	vec3.negate(tempVec, cubeInfo.position);
-	mat4.translate(tempRot,     // destination matrix
-								 tempRot,     // matrix to translate
-								 cubeInfo.position);  // amount to translate
+	mat4.translate(tempRotation, tempRotation,cubeInfo.position); 
+	mat4.rotate(tempRotation,tempRotation,-cubeInfo.rotation,cubeInfo.dirVector); 
+	mat4.translate(tempRotation,tempRotation,tempVec);
 
-	mat4.rotate(tempRot,  // destination matrix
-							tempRot,  // matrix to rotate
-							-cubeInfo.rotation,     // amount to rotate in radians
-							cubeInfo.dirVector);       // axis to rotate around (Z)
-
-	mat4.translate(tempRot,  // destination matrix
-							tempRot,  // matrix to rotate
-							tempVec);
-	vec3.transformMat4(_camPos, _camPos, tempRot);
+	vec3.transformMat4(_camPos, _camPos, tempRotation);
 
 	if(inBetween(bottomLeft[0], topRight[0], _camPos[0]) && inBetween(bottomLeft[1], topRight[1], _camPos[1]) && inBetween(bottomLeft[2], topRight[2], _camPos[2])) {
 		return true;
