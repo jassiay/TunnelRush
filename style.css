@@ -1,6 +1,21 @@
+body {
+    text-align: center;
+    background-color: black;
+}
+
+#instructions {
+    color: whitesmoke;
+    font-family: 'Fjalla One', sans-serif;
+}
+
+#instructions h3{
+    display: inline;
+}
+
 #info {
+    text-align: left;
     position: absolute;
-    left: 5%;
+    left: 7%;
     top: 5%;
     font-size: 1.5rem;
     width: 200px;
@@ -15,8 +30,9 @@
 }
 
 canvas {
-    height: 100%;
-    width: 100%; 
+    margin-top:30px;
+    height: 90%;
+    width: 90%; 
 }
 
 .game-menu {
@@ -57,7 +73,7 @@ canvas {
 #new-level {
     display: none;
     position: absolute;
-    right: 5%;
+    right: 7%;
     top: 5%;
     font-size: 1.5rem;
     width: 240px;
