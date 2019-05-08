@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Tunnel Rush</title>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+		<link href="./style.css" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css?family=Fjalla+One|Gugi" rel="stylesheet">
+
+		<script type="x-shader/x-vertex">
+			attribute vec4 aVertexPosition;
+			attribute vec2 aTextureCoord;
+			
+			uniform mat4 uModelViewMatrix;
+			uniform mat4 uProjectionMatrix;
+			
+			varying highp vec2 vTextureCoord;
+			varying highp vec3 vVertexPos;
+			
+			void main(void) {
+				vVertexPos = (uModelViewMatrix * aVertexPosition).xyz;
+				gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+				vTextureCoord = aTextureCoord;
+			}
+		</script>
+		
+		<script type="x-shader/x-fragment">
+			uvarying highp vec2 vTextureCoord;
+			varying highp vec3 vVertexPos;
+			uniform highp float vColor;
+			uniform highp vec3 camPos;
+			uniform highp float vFlash;
+			uniform sampler2D uSampler;
+			uniform int grFlag;
+			void main(void) {
+				gl_FragColor = texture2D(uSampler, vTextureCoord);
+				highp float factor = 1.0/clamp(length(camPos - vVertexPos)/7.5, 0.8, 1000.0);
+				gl_FragColor = vec4(gl_FragColor.r * factor, gl_FragColor.g * factor, gl_FragColor.b * factor, 1.0);
+				gl_FragColor = gl_FragColor * vFlash;
+				if(grFlag!=0) {
+					lowp float gray = (0.2*gl_FragColor.r+0.7*gl_FragColor.g+0.07*gl_FragColor.b);
+					gl_FragColor = vec4(gray, gray, gray, 1.0);
+				}
+			}
+		</script>
+		<!-- <script src="tunnel.js"></script> -->
+	</head>
+	<body>
+		<canvas id="canvas" width="1280" height="720"></canvas>
+		<!-- <audio hidden controls autoplay loop>
+			<source src="assets/song.mp3" type="audio/mpeg">
+		</audio> -->
+		<div id="info">Distance: 0<br/>Level: 1
+		</div>
+		<div id="start-game" class="game-menu">
+			<h1>Tunnel Rush</h1>
+			<button type="button" class="btn btn-info" onclick="gameStart()">Start Game</button>
+		</div>
+		<div id="game-over" class="game-menu">
+			<h1>Game Over</h1>
+			<button type="button" class="btn btn-info" onclick="restartGame()">Restart Game</button>
+		</div>
+		<div id="game-paused" class="game-menu">
+			<h1>Game Paused</h1>
+			<p class="paused-instruct">Press Space Key to Resume Game</p>
+		</div>
+		<div id="new-level">
+			<h1>New Level!</h1>
+		</div>
+	</body>
+	<script src="./js/matrix.js"></script>
+	<script src="./js/utils.js"></script>
+	<script src="./js/shader.js"></script>
+	<script src="./js/obstacle.js"></script>
+	<script src="./js/tunnel.js"></script>
+	<script type="text/javascript" src="./js/main.js"></script>
+</html>
